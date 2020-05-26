@@ -1,30 +1,30 @@
 const express = require('express');
 const path = require('path');
+const exphbs = require('express-handlebars');
 //const moment = require('moment');
 const logger = require('./middleware/logger');
-const members = require('./members');
 
 const app = express();
 
 //init middleware
-app.use(logger);
+//app.use(logger);
 
-//Get all members
-app.get('/api/members', (req, res) => res.json(members));
+//Handlebars Middleware
+app.engine('handlebars', exphbs({ defaultLayout: 'main' }));
+app.set('view engine', 'handlebars');
 
-//Get single number
-app.get('/api/members/:id', (req, res) => {
-  const found = members.some((member) => member.id === parseInt(req.params.id));
-
-  if (found) {
-    res.json(members.filter((member) => member.id === parseInt(req.params.id)));
-  } else {
-    res.status(400).json({ msg: `no member with the id of ${req.params.id}` });
-  }
-});
+//body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 //set static folder
-app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(path.join(__dirname, 'public')));
+
+//homepage root
+app.get('/layout', (req, res) => res.render('index'));
+
+//members api routes
+app.use('/api/members', require('./routes/api/members'));
 
 /*
 app.get('/', (req, res) => {
